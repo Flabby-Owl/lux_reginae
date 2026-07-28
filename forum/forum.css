@@ -1,0 +1,123 @@
+.forum-body {
+  min-height: 100vh;
+}
+
+.forum-hero {
+  padding: 8rem 0 3rem;
+  color: #fff;
+  background:
+    linear-gradient(90deg, rgba(20, 10, 32, 0.92), rgba(94, 47, 130, 0.74)),
+    url("../site_img/banner.png") center / cover;
+}
+
+.forum-hero h1 {
+  max-width: 52rem;
+  margin: 0;
+  font-size: clamp(2.3rem, 5vw, 4.8rem);
+}
+
+.forum-hero p:last-child {
+  max-width: 42rem;
+  margin: 0.9rem 0 0;
+  font-size: 1.15rem;
+}
+
+.forum-main {
+  padding: 3rem 0 4rem;
+}
+
+.forum-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.forum-category,
+.forum-topic,
+.forum-post,
+.forum-form {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow);
+}
+
+.forum-category {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  padding: 1.1rem;
+  text-decoration: none;
+}
+
+.forum-category + .forum-category,
+.forum-topic + .forum-topic,
+.forum-post + .forum-post {
+  margin-top: 0.85rem;
+}
+
+.forum-category h2,
+.forum-topic h2 {
+  margin: 0 0 0.3rem;
+  color: var(--ink);
+  font-size: 1.35rem;
+}
+
+.forum-category p,
+.forum-topic p,
+.forum-post__meta {
+  margin: 0;
+  color: var(--muted);
+}
+
+.forum-count {
+  display: grid;
+  min-width: 5.2rem;
+  place-items: center;
+  padding: 0.5rem;
+  color: #fff;
+  background: var(--royal);
+  border-radius: 0.45rem;
+}
+
+.forum-topic,
+.forum-post,
+.forum-form {
+  padding: 1.1rem;
+}
+
+.forum-post__meta {
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.forum-post__body {
+  margin-top: 0.9rem;
+  white-space: pre-wrap;
+}
+
+.forum-empty {
+  padding: 2rem;
+  color: var(--muted);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px dashed var(--line);
+  border-radius: 0.5rem;
+}
+
+.form-label {
+  font-weight: 800;
+}
+
+@media (max-width: 575.98px) {
+  .forum-category {
+    grid-template-columns: 1fr;
+  }
+
+  .forum-count {
+    justify-self: start;
+  }
+}

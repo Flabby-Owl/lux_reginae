@@ -1,0 +1,28 @@
+{
+    "next_topic_id": 1,
+    "next_reply_id": 1,
+    "categories": [
+        {
+            "id": "annonces",
+            "name": "Annonces",
+            "description": "Informations importantes de la compagnie libre."
+        },
+        {
+            "id": "sorties",
+            "name": "Sorties",
+            "description": "Organisation des raids, cartes aux tresors et activites."
+        },
+        {
+            "id": "aide",
+            "name": "Aide et conseils",
+            "description": "Questions, guides, craft, jobs et progression."
+        },
+        {
+            "id": "taverne",
+            "name": "La taverne",
+            "description": "Discussions libres entre membres."
+        }
+    ],
+    "topics": [],
+    "replies": []
+}
