@@ -1,0 +1,20 @@
+[
+    {
+        "id": "3d7dd6eb52f4938bf2431a99496000b1",
+        "username": "Aezumin",
+        "password_hash": "$2y$12$ioOJgtnOtaELNY.JcZh5puo\/aYmty0rA1BDQSTYKhfOU37S.bPME6",
+        "role": "Administrateur",
+        "created_at": "2026-07-29T10:12:53+00:00",
+        "last_login_at": "2026-08-01T21:04:31+00:00",
+        "privacy_accepted_at": "2026-07-29T10:12:53+00:00"
+    },
+    {
+        "id": "05161d87960a2389ce363a2b73a6c39c",
+        "username": "Rydia",
+        "password_hash": "$2y$12$dbPHFjAHvHVbbwBupP\/\/E.Vw4j97ApPwo2M3mcHrbnThxrN6mmDAK",
+        "role": "Administrateur",
+        "created_at": "2026-07-31T19:01:39+00:00",
+        "last_login_at": "2026-08-12T18:36:52+00:00",
+        "privacy_accepted_at": "2026-07-31T19:01:39+00:00"
+    }
+]

@@ -1,122 +1,134 @@
 <?php
-
-declare(strict_types=1);
-
 require_once __DIR__ . '/includes/layout.php';
 
-$topicId = (int) ($_GET['id'] ?? 0);
 $data = forum_load();
-$topic = forum_find_topic($data, $topicId);
+$id = (int) ($_GET['id'] ?? 0);
+$topic = forum_topic($data, $id);
 
-if ($topic === null) {
-    http_response_code(404);
+if (!$topic) {
     forum_header('Sujet introuvable');
-    ?>
-    <div class="alert alert-warning">Ce sujet n existe pas.</div>
-    <a class="btn btn-primary" href="./">Retour au forum</a>
-    <?php
+    echo '<div class="forum-empty">Sujet introuvable.</div>';
     forum_footer();
     exit;
 }
 
-$category = forum_find_category($data, $topic['category_id']);
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $author = forum_post_value('author');
-    $body = forum_post_value('body');
-    $website = forum_post_value('website');
+    lr_require_login();
+    if (!lr_validate_csrf()) $errors[] = 'Session expiree.';
 
-    if ($website !== '') {
-        $errors[] = 'Le formulaire semble invalide.';
-    }
-
-    if (forum_length($author) < 2 || forum_length($author) > 40) {
-        $errors[] = 'Le pseudo doit faire entre 2 et 40 caracteres.';
-    }
-
-    if (forum_length($body) < 3 || forum_length($body) > 5000) {
-        $errors[] = 'La reponse doit faire entre 3 et 5000 caracteres.';
-    }
-
-    if ($errors === []) {
-        forum_update(static function (array &$forum) use ($author, $body, $topicId): int {
-            $now = date(DATE_ATOM);
-            $replyId = (int) $forum['next_reply_id'];
-            $forum['next_reply_id'] = $replyId + 1;
-            $forum['replies'][] = [
-                'id' => $replyId,
-                'topic_id' => $topicId,
-                'body' => $body,
-                'author' => $author,
-                'created_at' => $now,
-            ];
-
-            foreach ($forum['topics'] as &$item) {
-                if ((int) $item['id'] === $topicId) {
-                    $item['updated_at'] = $now;
-                    break;
-                }
-            }
-
-            return $replyId;
+    if (($_POST['action'] ?? '') === 'delete' && lr_has_role(['Administrateur', 'Modérateur']) && !$errors) {
+        forum_update(function (array &$forum) use ($id): void {
+            $forum['topics'] = array_values(array_filter($forum['topics'], fn ($t) => (int) $t['id'] !== $id));
+            $forum['replies'] = array_values(array_filter($forum['replies'], fn ($r) => (int) $r['topic_id'] !== $id));
         });
+        header('Location: ./');
+        exit;
+    }
 
-        forum_redirect('./topic.php?id=' . $topicId . '#reply-form');
+    if (($_POST['action'] ?? '') === 'delete_reply' && lr_has_role(['Administrateur', 'Modérateur']) && !$errors) {
+        $replyId = (int) lr_post('reply_id');
+        forum_update(function (array &$forum) use ($replyId): void {
+            $forum['replies'] = array_values(array_filter($forum['replies'], fn ($r) => (int) $r['id'] !== $replyId));
+        });
+        header('Location: ./topic.php?id=' . $id);
+        exit;
+    }
+
+    if (($_POST['action'] ?? '') === 'reply' && !$errors) {
+        $body = trim(lr_post('body'));
+        if ($body === '') {
+            $errors[] = 'La réponse est vide.';
+        } else {
+            $user = lr_current_user();
+            forum_update(function (&$forum) use ($user, $id, $body): void {
+                $forum['replies'][] = [
+                    'id' => (int) $forum['next_reply_id']++,
+                    'topic_id' => $id,
+                    'body' => $body,
+                    'author' => $user['username'],
+                    'author_id' => $user['id'],
+                    'created_at' => date(DATE_ATOM),
+                ];
+                foreach ($forum['topics'] as &$topicItem) {
+                    if ((int) $topicItem['id'] === $id) {
+                        $topicItem['updated_at'] = date(DATE_ATOM);
+                    }
+                }
+                unset($topicItem);
+            });
+            header('Location: ./topic.php?id=' . $id);
+            exit;
+        }
     }
 }
 
 $data = forum_load();
-$topic = forum_find_topic($data, $topicId);
-$replies = forum_replies_for_topic($data, $topicId);
+$topic = forum_topic($data, $id);
+$category = forum_category($data, (string) $topic['category_id']);
+$replies = forum_replies($data, $id);
 
 forum_header($topic['title']);
-forum_error_list($errors);
+forum_errors($errors);
 ?>
-
 <div class="forum-toolbar">
   <div>
-    <a href="./<?= $category ? '?category=' . urlencode($category['id']) : '' ?>" class="small">&larr; Retour <?= $category ? 'a ' . forum_h($category['name']) : 'au forum' ?></a>
-    <h2 class="mb-1"><?= forum_h($topic['title']) ?></h2>
-    <p class="text-muted mb-0">Sujet cree par <?= forum_h($topic['author']) ?> le <?= date('d/m/Y H:i', strtotime($topic['created_at'])) ?></p>
+    <a class="forum-back" href="./?category=<?= urlencode($topic['category_id']) ?>">Retour à <?= lr_h($category['name'] ?? 'la catégorie') ?></a>
+    <h2><?= lr_h($topic['title']) ?></h2>
+    <p><?= count($replies) ?> réponses · dernière activité <?= lr_h(forum_latest_activity($data, $topic)) ?></p>
   </div>
-  <a class="btn btn-primary" href="#reply-form"><i class="bi bi-reply-fill"></i> Repondre</a>
+  <?php if (lr_has_role(['Administrateur', 'Modérateur'])): ?>
+    <form method="post">
+      <?php lr_csrf_field(); ?>
+      <button class="btn btn-outline-danger" name="action" value="delete">Supprimer le sujet</button>
+    </form>
+  <?php endif; ?>
 </div>
 
-<article class="forum-post">
-  <p class="forum-post__meta">Message initial - <?= forum_h($topic['author']) ?></p>
-  <div class="forum-post__body"><?= nl2br(forum_h($topic['body'])) ?></div>
+<article class="forum-post forum-post--lead">
+  <aside class="forum-author">
+    <span><?= strtoupper(substr($topic['author'], 0, 1)) ?></span>
+    <strong><?= lr_h($topic['author']) ?></strong>
+    <small><?= date('d/m/Y H:i', strtotime($topic['created_at'])) ?></small>
+  </aside>
+  <div class="forum-post__body"><?= nl2br(lr_h($topic['body'])) ?></div>
 </article>
 
-<?php foreach ($replies as $reply): ?>
-  <article class="forum-post">
-    <p class="forum-post__meta">
-      Reponse de <?= forum_h($reply['author']) ?> -
-      <?= date('d/m/Y H:i', strtotime($reply['created_at'])) ?>
-    </p>
-    <div class="forum-post__body"><?= nl2br(forum_h($reply['body'])) ?></div>
-  </article>
-<?php endforeach; ?>
+<section class="forum-replies">
+  <h2>Réponses</h2>
+  <?php foreach ($replies as $reply): ?>
+    <article class="forum-post">
+      <aside class="forum-author">
+        <span><?= strtoupper(substr($reply['author'], 0, 1)) ?></span>
+        <strong><?= lr_h($reply['author']) ?></strong>
+        <small><?= date('d/m/Y H:i', strtotime($reply['created_at'])) ?></small>
+      </aside>
+      <div>
+        <div class="forum-post__body"><?= nl2br(lr_h($reply['body'])) ?></div>
+        <?php if (lr_has_role(['Administrateur', 'Modérateur'])): ?>
+          <form method="post" class="forum-inline-action">
+            <?php lr_csrf_field(); ?>
+            <input type="hidden" name="action" value="delete_reply">
+            <input type="hidden" name="reply_id" value="<?= (int) $reply['id'] ?>">
+            <button class="btn btn-outline-danger btn-sm">Supprimer la réponse</button>
+          </form>
+        <?php endif; ?>
+      </div>
+    </article>
+  <?php endforeach; ?>
+  <?php if (!$replies): ?><div class="forum-empty">Aucune réponse pour le moment.</div><?php endif; ?>
+</section>
 
-<form class="forum-form mt-4" id="reply-form" method="post" action="./topic.php?id=<?= (int) $topicId ?>#reply-form">
-  <h2>Repondre</h2>
-  <div class="row g-3">
-    <div class="col-md-5">
-      <label class="form-label" for="author">Pseudo</label>
-      <input class="form-control" id="author" name="author" maxlength="40" required value="<?= forum_h($_POST['author'] ?? '') ?>">
-    </div>
-    <div class="col-12">
-      <label class="form-label" for="body">Message</label>
-      <textarea class="form-control" id="body" name="body" rows="7" required><?= forum_h($_POST['body'] ?? '') ?></textarea>
-    </div>
-    <div class="d-none">
-      <label for="website">Site web</label>
-      <input id="website" name="website" tabindex="-1" autocomplete="off">
-    </div>
-    <div class="col-12">
-      <button class="btn btn-primary" type="submit">Publier la reponse</button>
-    </div>
-  </div>
+<?php if (lr_current_user()): ?>
+<form class="forum-form mt-4" method="post">
+  <?php lr_csrf_field(); ?>
+  <input type="hidden" name="action" value="reply">
+  <h2>Répondre</h2>
+  <label>Message<textarea class="form-control" name="body" rows="7" placeholder="Écris ta réponse..."></textarea></label>
+  <div class="forum-form-actions"><button class="btn btn-primary">Publier la réponse</button></div>
 </form>
-
+<?php else: ?>
+  <div class="forum-empty"><a href="../login.php">Connectez-vous</a> pour repondre.</div>
+<?php endif; ?>
 <?php forum_footer(); ?>

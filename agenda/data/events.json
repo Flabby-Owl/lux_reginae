@@ -1,0 +1,26 @@
+[
+    {
+        "id": "seed-1",
+        "title": "Soiree hebdomadaire",
+        "date": "2026-08-02",
+        "time": "20:45",
+        "type": "Raid",
+        "description": "Rendez-vous pour les grosses activites de la compagnie libre. Vocal recommande pour les calls."
+    },
+    {
+        "id": "seed-2",
+        "title": "Cartes aux tresors",
+        "date": "2026-08-05",
+        "time": "21:00",
+        "type": "Carte",
+        "description": "Sortie detente en groupe, cartes et coffres au programme."
+    },
+    {
+        "id": "seed-3",
+        "title": "Open-mic au Sourcil",
+        "date": "2026-08-09",
+        "time": "21:30",
+        "type": "Social",
+        "description": "Une soiree libre pour profiter de la scene, ecouter les bardes et passer au bar."
+    }
+]

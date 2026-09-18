@@ -1,0 +1,79 @@
+{
+  "Tracks": [
+    {
+      "Index": 0,
+      "Enabled": false,
+      "Name": "kar",
+      "Transpose": 0,
+      "Instrument": 0,
+      "AssignedCids": []
+    },
+    {
+      "Index": 1,
+      "Enabled": false,
+      "Name": "Bass",
+      "Transpose": 0,
+      "Instrument": 0,
+      "AssignedCids": []
+    },
+    {
+      "Index": 2,
+      "Enabled": true,
+      "Name": "guitare",
+      "Transpose": 0,
+      "Instrument": 25,
+      "AssignedCids": [
+        18014598545808610
+      ]
+    },
+    {
+      "Index": 3,
+      "Enabled": false,
+      "Name": "Piano",
+      "Transpose": 0,
+      "Instrument": 2,
+      "AssignedCids": []
+    },
+    {
+      "Index": 4,
+      "Enabled": true,
+      "Name": "cordes",
+      "Transpose": 0,
+      "Instrument": 25,
+      "AssignedCids": [
+        18014598545808610
+      ]
+    },
+    {
+      "Index": 5,
+      "Enabled": true,
+      "Name": "trompette solo",
+      "Transpose": 0,
+      "Instrument": 15,
+      "AssignedCids": [
+        18014598551313609
+      ]
+    },
+    {
+      "Index": 6,
+      "Enabled": false,
+      "Name": "pizz.strings",
+      "Transpose": 0,
+      "Instrument": 0,
+      "AssignedCids": []
+    },
+    {
+      "Index": 7,
+      "Enabled": true,
+      "Name": "Drums & Percussion",
+      "Transpose": 0,
+      "Instrument": 11,
+      "AssignedCids": [
+        18014598547144115
+      ]
+    }
+  ],
+  "ToneMode": 2,
+  "AdaptNotes": true,
+  "Speed": 1.0
+}

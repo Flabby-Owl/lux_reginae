@@ -1,0 +1,179 @@
+.edit-fab {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 20;
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  padding: 0.82rem 1rem;
+  color: #241c2f;
+  font-weight: 900;
+  background: var(--gold-2);
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  box-shadow: 0 16px 34px rgba(36, 28, 47, 0.18);
+  transition: transform 170ms ease, box-shadow 170ms ease;
+}
+
+.edit-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 48px rgba(36, 28, 47, 0.24);
+}
+
+.edit-bar {
+  display: none;
+  gap: 0.7rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.editing .edit-bar {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.editable-field,
+.editable-area {
+  width: 100%;
+  margin-bottom: 0.65rem;
+  padding: 0.68rem 0.75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.editable-area {
+  min-height: 6rem;
+}
+
+.edit-panel {
+  display: none;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+.editing .edit-panel {
+  display: block;
+}
+
+.upload-control {
+  display: grid;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px dashed var(--line-strong);
+  border-radius: 6px;
+}
+
+.upload-control.compact {
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.upload-preview {
+  overflow: hidden;
+  background: #efe6dc;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.upload-preview img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.upload-button {
+  justify-self: start;
+  margin: 0;
+  cursor: pointer;
+}
+
+.upload-button input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.upload-control small {
+  color: var(--muted);
+  word-break: break-word;
+}
+
+.auth-page {
+  min-height: 100vh;
+  padding: 7.5rem 1rem 3rem;
+  background: linear-gradient(180deg, var(--paper), var(--paper-2));
+}
+
+.auth-card {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: clamp(1.2rem, 3vw, 1.75rem);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.auth-card h1 {
+  margin-bottom: 1rem;
+  font-size: clamp(2rem, 5vw, 3.35rem);
+}
+
+.auth-card.wide {
+  max-width: 72rem;
+}
+
+.auth-card label {
+  display: block;
+  margin-top: 0.9rem;
+  font-weight: 800;
+}
+
+.admin-row {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) minmax(10rem, 14rem) auto auto;
+  gap: 0.65rem;
+  align-items: center;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.editable-member {
+  background: var(--panel);
+  border-radius: var(--radius);
+}
+
+.editable-member {
+  padding: 0;
+}
+
+.editable-member img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.member-edit {
+  padding: 0.9rem;
+}
+
+@media (max-width: 700px) {
+  .admin-row {
+    grid-template-columns: 1fr;
+  }
+}

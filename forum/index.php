@@ -1,76 +1,111 @@
 <?php
-
-declare(strict_types=1);
-
 require_once __DIR__ . '/includes/layout.php';
 
 $data = forum_load();
 $categoryId = (string) ($_GET['category'] ?? '');
-$category = $categoryId !== '' ? forum_find_category($data, $categoryId) : null;
 
-if ($categoryId !== '' && $category === null) {
-    http_response_code(404);
-    forum_header('Categorie introuvable');
-    ?>
-    <div class="alert alert-warning">Cette categorie n existe pas.</div>
-    <a class="btn btn-primary" href="./">Retour au forum</a>
-    <?php
-    forum_footer();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && lr_has_role(['Administrateur']) && lr_validate_csrf()) {
+    $name = trim(lr_post('name'));
+    if ($name !== '') {
+        forum_update(function (&$forum) use ($name): void {
+            $forum['categories'][] = [
+                'id' => strtolower(preg_replace('/[^a-z0-9]+/i', '-', $name)) . '-' . time(),
+                'name' => $name,
+                'description' => trim(lr_post('description')),
+            ];
+        });
+    }
+    header('Location: ./');
     exit;
 }
 
-forum_header($category ? $category['name'] : 'Forum Lux Reginae');
+forum_header($categoryId === '' ? 'Forum Lux Reginae' : (forum_category($data, $categoryId)['name'] ?? 'Categorie'));
 
-if ($category === null):
-    ?>
-    <div class="forum-toolbar">
-      <div>
-        <h2 class="mb-1">Categories</h2>
-        <p class="text-muted mb-0">Choisissez un espace de discussion.</p>
-      </div>
-      <a class="btn btn-primary" href="./new.php"><i class="bi bi-plus-lg"></i> Nouveau sujet</a>
+if ($categoryId === ''):
+    $topicTotal = count($data['topics']);
+    $replyTotal = count($data['replies']);
+?>
+<section class="forum-overview">
+  <div>
+    <p class="forum-kicker">Accueil du forum</p>
+    <h2>Choisis un espace de discussion</h2>
+    <p>Les sujets sont classés par catégorie pour retrouver vite les annonces, les sorties et les demandes d’aide.</p>
+  </div>
+  <div class="forum-stats">
+    <span><strong><?= (int) $topicTotal ?></strong> sujets</span>
+    <span><strong><?= (int) $replyTotal ?></strong> réponses</span>
+  </div>
+</section>
+
+<div class="forum-toolbar">
+  <h2>Categories</h2>
+  <?php if (lr_has_role(['Administrateur', 'Modérateur', 'Utilisateur'])): ?>
+    <a class="btn btn-primary" href="./new.php">Nouveau sujet</a>
+  <?php else: ?>
+    <a class="btn btn-outline-primary" href="../login.php">Se connecter pour publier</a>
+  <?php endif; ?>
+</div>
+
+<div class="forum-category-grid">
+<?php foreach ($data['categories'] as $category):
+    $topics = forum_topics($data, $category['id']);
+    $replyCount = array_sum(array_map(fn ($topic) => forum_reply_count($data, (int) $topic['id']), $topics));
+?>
+  <a class="forum-category" href="./?category=<?= urlencode($category['id']) ?>">
+    <span class="forum-category__icon"><?= strtoupper(substr($category['name'], 0, 1)) ?></span>
+    <div>
+      <h2><?= lr_h($category['name']) ?></h2>
+      <p><?= lr_h($category['description']) ?></p>
+      <small><?= count($topics) ?> sujets · <?= (int) $replyCount ?> réponses</small>
     </div>
+  </a>
+<?php endforeach; ?>
+</div>
 
-    <?php foreach ($data['categories'] as $item): ?>
-      <?php $topics = forum_topics_for_category($data, $item['id']); ?>
-      <a class="forum-category" href="./?category=<?= urlencode($item['id']) ?>">
-        <div>
-          <h2><?= forum_h($item['name']) ?></h2>
-          <p><?= forum_h($item['description']) ?></p>
-        </div>
-        <div class="forum-count">
-          <strong><?= count($topics) ?></strong>
-          <span>sujets</span>
-        </div>
-      </a>
-    <?php endforeach; ?>
-<?php else: ?>
-    <?php $topics = forum_topics_for_category($data, $category['id']); ?>
-    <div class="forum-toolbar">
-      <div>
-        <a href="./" class="small">&larr; Toutes les categories</a>
-        <h2 class="mb-1"><?= forum_h($category['name']) ?></h2>
-        <p class="text-muted mb-0"><?= forum_h($category['description']) ?></p>
-      </div>
-      <a class="btn btn-primary" href="./new.php?category=<?= urlencode($category['id']) ?>"><i class="bi bi-plus-lg"></i> Nouveau sujet</a>
-    </div>
-
-    <?php if ($topics === []): ?>
-      <div class="forum-empty">Aucun sujet pour le moment. C est le bon moment pour lancer la discussion.</div>
-    <?php endif; ?>
-
-    <?php foreach ($topics as $topic): ?>
-      <?php $replies = forum_replies_for_topic($data, (int) $topic['id']); ?>
-      <article class="forum-topic">
-        <h2><a href="./topic.php?id=<?= (int) $topic['id'] ?>"><?= forum_h($topic['title']) ?></a></h2>
-        <p><?= forum_h(forum_excerpt($topic['body'])) ?></p>
-        <p class="forum-post__meta mt-2">
-          Par <?= forum_h($topic['author']) ?> -
-          <?= date('d/m/Y H:i', strtotime($topic['created_at'])) ?> -
-          <?= count($replies) ?> reponse<?= count($replies) > 1 ? 's' : '' ?>
-        </p>
-      </article>
-    <?php endforeach; ?>
+<?php if (lr_has_role(['Administrateur'])): ?>
+<form class="forum-form forum-form--compact mt-4" method="post">
+  <?php lr_csrf_field(); ?>
+  <h2>Créer une catégorie</h2>
+  <div class="forum-form-grid">
+    <label>Nom<input class="form-control" name="name" placeholder="Ex : Raids, artisanat, annonces"></label>
+    <label>Description<input class="form-control" name="description" placeholder="Courte description visible sur la carte"></label>
+  </div>
+  <button class="btn btn-primary">Ajouter</button>
+</form>
 <?php endif; ?>
 
-<?php forum_footer(); ?>
+<?php else:
+    $category = forum_category($data, $categoryId);
+    $topics = forum_topics($data, $categoryId);
+?>
+<div class="forum-toolbar">
+  <div>
+    <a class="forum-back" href="./">Retour aux catégories</a>
+    <h2><?= lr_h($category['name'] ?? 'Categorie') ?></h2>
+    <?php if ($category): ?><p><?= lr_h($category['description']) ?></p><?php endif; ?>
+  </div>
+  <a class="btn btn-primary" href="./new.php?category=<?= urlencode($categoryId) ?>">Nouveau sujet</a>
+</div>
+
+<div class="forum-topic-list">
+<?php foreach ($topics as $topic): ?>
+  <article class="forum-topic">
+    <div>
+      <h2><a href="./topic.php?id=<?= (int) $topic['id'] ?>"><?= lr_h($topic['title']) ?></a></h2>
+      <?php $excerpt = strlen((string) $topic['body']) > 150 ? substr((string) $topic['body'], 0, 150) . '...' : (string) $topic['body']; ?>
+      <p><?= lr_h($excerpt) ?></p>
+      <small>Par <?= lr_h($topic['author']) ?> · cree le <?= date('d/m/Y H:i', strtotime($topic['created_at'])) ?></small>
+    </div>
+    <div class="forum-topic__meta">
+      <strong><?= forum_reply_count($data, (int) $topic['id']) ?></strong>
+      <span>réponses</span>
+      <small><?= lr_h(forum_latest_activity($data, $topic)) ?></small>
+    </div>
+  </article>
+<?php endforeach; ?>
+</div>
+
+<?php if (!$topics): ?>
+  <div class="forum-empty">Aucun sujet dans cette catégorie pour le moment.</div>
+<?php endif; ?>
+<?php endif; forum_footer(); ?>
